@@ -1,0 +1,55 @@
+apiVersion: policy.mcm.ibm.com/v1alpha1
+kind: Policy
+metadata:
+  annotations:
+    policy.mcm.ibm.com/categories: PR.IP Information Protection Processes and Procedures
+    policy.mcm.ibm.com/controls: PR.IP-1 Baseline configuration
+    policy.mcm.ibm.com/standards: NIST-CSF
+  name: policy-grc
+  namespace: mcm-policies
+spec:
+  complianceType: musthave
+  disabled: false
+  namespaces:
+    exclude:
+    - kube-*
+    include:
+    - default
+  object-templates:
+  - complianceType: musthave
+    objectDefinition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: prod
+  remediationAction: inform
+
+---
+apiVersion: mcm.ibm.com/v1alpha1
+kind: PlacementBinding
+metadata:
+  name: binding-policy-grc-1
+  namespace: mcm-policies
+placementRef:
+  apiGroup: mcm.ibm.com
+  kind: PlacementPolicy
+  name: placement-policy-grc
+subjects:
+- apiGroup: policy.mcm.ibm.com
+  kind: Policy
+  name: policy-grc
+
+---
+apiVersion: mcm.ibm.com/v1alpha1
+kind: PlacementPolicy
+metadata:
+  name: placement-policy-grc
+  namespace: mcm-policies
+spec:
+  clusterLabels:
+    matchExpressions:
+    - key: cloud
+      operator: In
+      values:
+      - MyDataCenter1
+      - MyDataCenter2

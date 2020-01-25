@@ -1,0 +1,62 @@
+apiVersion: policy.mcm.ibm.com/v1alpha1
+kind: Policy
+metadata:
+  annotations:
+    policy.mcm.ibm.com/categories: PR.DS DataSecurity
+    policy.mcm.ibm.com/controls: PR.DS-2 Data-in-transit
+    policy.mcm.ibm.com/standards: NIST-CSF
+  name: policy-cert
+  namespace: mcm-policies
+spec:
+  complianceType: musthave
+  disabled: false
+  namespaces:
+    exclude:
+    - kube-*
+    include:
+    - default
+  policy-templates:
+  - objectDefinition:
+      apiVersion: policies.ibm.com/v1alpha1
+      kind: CertificatePolicy
+      metadata:
+        name: policy-cert-example
+      spec:
+        minimumDuration: 300h
+        namespaceSelector:
+          exclude: []
+          include:
+          - default
+        remediationAction: enforce
+        severity: low
+  remediationAction: enforce
+
+---
+apiVersion: mcm.ibm.com/v1alpha1
+kind: PlacementBinding
+metadata:
+  name: binding-policy-cert
+  namespace: mcm-policies
+placementRef:
+  apiGroup: mcm.ibm.com
+  kind: PlacementPolicy
+  name: placement-policy-cert
+subjects:
+- apiGroup: policy.mcm.ibm.com
+  kind: Policy
+  name: policy-cert
+
+---
+apiVersion: mcm.ibm.com/v1alpha1
+kind: PlacementPolicy
+metadata:
+  name: placement-policy-cert
+  namespace: mcm-policies
+spec:
+  clusterLabels:
+    matchExpressions:
+    - key: cloud
+      operator: In
+      values:
+      - MyDataCenter1
+      - MyDataCenter2
