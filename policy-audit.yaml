@@ -1,0 +1,73 @@
+apiVersion: policy.mcm.ibm.com/v1alpha1
+kind: Policy
+metadata:
+  annotations:
+    policy.mcm.ibm.com/categories: PR.PT Protective Technology
+    policy.mcm.ibm.com/controls: PR.PT-1 Audit Logging
+    policy.mcm.ibm.com/standards: NIST-CSF
+  name: policy-audit
+  namespace: mcm-policies
+spec:
+  complianceType: musthave
+  disabled: false
+  namespaces:
+    exclude:
+    - kube-*
+    include:
+    - default
+  policy-templates:
+  - objectDefinition:
+      apiVersion: audit.policies.ibm.com/v1alpha1
+      kind: AuditPolicy
+      metadata:
+        name: policy-audit-example
+      spec:
+        clusterAuditPolicy:
+          auditPolicyRules:
+            auth-idp: ignore
+            helmapi: ignore
+            kubernetes: ignore
+            platform-api: ignore
+            platform-identity-manager: ignore
+            platform-identity-provider: ignore
+            vulnerability-advisor: ignore
+        namespaceSelector:
+          exclude:
+          - kube-system
+          include:
+          - default
+          - kube-*
+        remediationAction: inform
+        severity: low
+  remediationAction: inform
+
+---
+apiVersion: mcm.ibm.com/v1alpha1
+kind: PlacementBinding
+metadata:
+  name: binding-policy-audit
+  namespace: mcm-policies
+placementRef:
+  apiGroup: mcm.ibm.com
+  kind: PlacementPolicy
+  name: placement-policy-audit
+subjects:
+- apiGroup: policy.mcm.ibm.com
+  kind: Policy
+  name: policy-auditpolicy
+
+---
+apiVersion: mcm.ibm.com/v1alpha1
+kind: PlacementPolicy
+metadata:
+  name: placement-policy-audit
+  namespace: mcm-policies
+spec:
+  clusterLabels:
+    matchExpressions:
+    - key: cloud
+      operator: In
+      values:
+      - MyDataCenter2
+      - MyDataCenter1
+

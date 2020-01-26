@@ -1,0 +1,83 @@
+apiVersion: policy.mcm.ibm.com/v1alpha1
+kind: Policy
+metadata:
+  annotations:
+    policy.mcm.ibm.com/categories: PR.AC Identity Management Authentication and Access Control
+    policy.mcm.ibm.com/controls: PR.AC-4 Access Control
+    policy.mcm.ibm.com/standards: NIST-CSF
+  name: policy-role
+  namespace: mcm-policies
+spec:
+  complianceType: musthave
+  disabled: false
+  namespaces:
+    exclude:
+    - kube-*
+    include:
+    - default
+  remediationAction: inform
+  role-templates:
+  - apiVersion: roletemplate.mcm.ibm.com/v1alpha1
+    complianceType: musthave
+    metadata:
+      creationTimestamp: null
+      name: operator-role-policy
+    rules:
+    - complianceType: musthave
+      policyRule:
+        apiGroups:
+        - extensions
+        - apps
+        resources:
+        - deployments
+        verbs:
+        - get
+        - list
+        - watch
+        - create
+        - delete
+        - patch
+    - complianceType: mustnothave
+      policyRule:
+        apiGroups:
+        - core
+        resources:
+        - secrets
+        verbs:
+        - get
+        - list
+        - watch
+        - delete
+        - create
+        - update
+        - patch
+
+---
+apiVersion: mcm.ibm.com/v1alpha1
+kind: PlacementBinding
+metadata:
+  name: binding-policy-role
+  namespace: mcm-policies
+placementRef:
+  apiGroup: mcm.ibm.com
+  kind: PlacementPolicy
+  name: placement-policy-role
+subjects:
+- apiGroup: policy.mcm.ibm.com
+  kind: Policy
+  name: policy-role
+
+---
+apiVersion: mcm.ibm.com/v1alpha1
+kind: PlacementPolicy
+metadata:
+  name: placement-policy-role
+  namespace: mcm-policies
+spec:
+  clusterLabels:
+    matchExpressions:
+    - key: cloud
+      operator: In
+      values:
+      - MyDataCenter1
+      - MyDataCenter2
